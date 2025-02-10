@@ -22,29 +22,44 @@ ext {
 }
 
 dependencies {
-
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'junit:junit:4.13.1'
-    implementation 'com.h2database:h2'
-
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.0.3'
-    implementation "org.springframework.cloud:spring-cloud-starter-bootstrap"
-
+    // Spring Boot 기본 스타터
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient 사용
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // Lombok
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Spring Cloud 관련 의존성
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.0.3'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+
+    // H2 Database (테스트용)
+    implementation 'com.h2database:h2'
+
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // JUnit 및 테스트 관련 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'junit:junit:4.13.1'
     testImplementation 'org.mockito:mockito-core:3.11.2'
+
+    // 개발 환경 지원
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'net.jodah:expiringmap:0.5.10'
+
+    // JSON 처리 라이브러리 (Gson)
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 dependencyManagement {
