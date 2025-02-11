@@ -22,7 +22,12 @@ ext {
 }
 
 dependencies {
+
     // Spring Boot 기본 스타터
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'junit:junit:4.13.1'
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient 사용
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -41,10 +46,6 @@ dependencies {
     // Spring Cloud 관련 의존성
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:4.0.3'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-
-    // H2 Database (테스트용)
-    implementation 'com.h2database:h2'
 
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
