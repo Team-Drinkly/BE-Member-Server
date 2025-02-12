@@ -2,10 +2,7 @@ package com.drinkhere.drinklymember.nice.service;
 
 import com.drinkhere.drinklymember.common.annotation.ApplicationService;
 import com.drinkhere.drinklymember.common.exception.nice.NiceException;
-import com.drinkhere.drinklymember.domain.member.entity.Member;
-import com.drinkhere.drinklymember.domain.member.enums.Gender;
-import com.drinkhere.drinklymember.domain.member.enums.MobileCo;
-import com.drinkhere.drinklymember.domain.member.enums.NationalInfo;
+import com.drinkhere.drinklymember.domain.member.dto.GetNiceApiResultResponse;
 import com.drinkhere.drinklymember.domain.member.service.MemberCommandService;
 import com.drinkhere.drinklymember.domain.member.service.MemberQueryService;
 import com.drinkhere.drinklymember.nice.dto.NiceCryptoData;
@@ -36,20 +33,16 @@ import static com.drinkhere.drinklymember.common.exception.nice.NiceErrorCode.*;
 public class NiceCallBackUseCase {
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper;
-    private final MemberCommandService memberCommandService;
     private final MemberQueryService memberQueryService;
     private static final String REDIS_CRYPTO_KEY = "cryptoData";
     private static final String REDIS_REQUEST_NO_KEY_TEMPLATE = "memberId:%d:requestNo";
     private static final String SYMMETRIC_ENCRYPTION_ALGORITHM_AES = "AES";
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
-    public void processCallback(Long memberId, String encData)
+    public GetNiceApiResultResponse processCallback(Long memberId, String encData)
     {
         // 대칭키 조회
         NiceCryptoData niceCryptoData = getCryptoDataFromRedisAndValidate();
-        System.out.println("-------call back url 반환 후 복호화 시");
-        System.out.println("niceCryptoData.toString() = " + niceCryptoData.toString());
-        System.out.println("encData = " + encData);
 
         // encData 복호화
         NiceDecryptedData niceDecryptedData = decryptAndParseData(encData, niceCryptoData.key(), niceCryptoData.iv());
@@ -60,20 +53,9 @@ public class NiceCallBackUseCase {
         checkDuplicateAccountByDI(niceDecryptedData.di());
         String decodedName = decodingName(niceDecryptedData.utf8Name());
 
-        // 복호화 결과 저장
-        Member member = Member.builder()
-                .name(decodedName)
-                .birthDate(niceDecryptedData.birthDate())
-                .gender(Gender.fromValue(Integer.parseInt(niceDecryptedData.gender()))) // Gender Enum 변환
-                .nationalInfo(NationalInfo.fromValue(Integer.parseInt(niceDecryptedData.nationalInfo()))) // NationalInfo Enum 변환
-                .mobileCo(MobileCo.fromValue(Integer.parseInt(niceDecryptedData.mobileCo()))) // MobileCo Enum 변환
-                .mobileNo(niceDecryptedData.mobileNo())
-                .di(niceDecryptedData.di())
-                .build();
-
-        memberCommandService.save(member);
+        return GetNiceApiResultResponse.from(memberId, niceDecryptedData, decodedName);
     }
-    /**--------------------------------------------------------------------------------------------**/
+    /**-----------------------------------METHOD들------------------------------------------**/
     // Redis에서 대칭키 조회 후 역직렬화
     private NiceCryptoData getCryptoDataFromRedisAndValidate() {
         String cryptoDataJson = (String) redisUtil.get(REDIS_CRYPTO_KEY);
