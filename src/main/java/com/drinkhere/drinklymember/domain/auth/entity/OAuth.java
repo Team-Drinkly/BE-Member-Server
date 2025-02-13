@@ -21,12 +21,20 @@ public class OAuth {
 
     private String sub;
 
+    @Column(name = "is_registered", nullable = false)
+    boolean isRegistered;
+
     private OAuth(Provider provider, String sub) {
         this.provider = provider;
         this.sub = sub;
+        this.isRegistered = false;
     }
 
     public static OAuth of(Provider provider, String sub) {
         return new OAuth(provider, sub);
+    }
+
+    public void  updateRegisterStatus() { // 가입 처리
+        this.isRegistered = true;
     }
 }
