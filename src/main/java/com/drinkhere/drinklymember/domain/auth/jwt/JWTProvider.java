@@ -29,16 +29,17 @@ public class JWTProvider {
         return generateToken(PrivateClaims.of(sub, TokenType.REFRESH_TOKEN), jwtProperties.getRefreshTokenExpirationTime());
     }
 
-    public Token generateToken(final String sub) {
-        // PrivateClaims를 사용하여 AccessToken 및 RefreshToken 생성
-        final PrivateClaims privateClaims = PrivateClaims.of(sub, TokenType.ACCESS_TOKEN);
+    public Token generateToken(String sub, Long userId) {
+        // OAuth ID를 `user-id`로 저장하여 토큰 생성
+        final PrivateClaims privateClaims = PrivateClaims.of(userId.toString(), TokenType.ACCESS_TOKEN);
         final String accessToken = generateToken(privateClaims, jwtProperties.getAccessTokenExpirationTime());
 
-        final PrivateClaims refreshClaims = PrivateClaims.of(sub, TokenType.REFRESH_TOKEN);
+        final PrivateClaims refreshClaims = PrivateClaims.of(userId.toString(), TokenType.REFRESH_TOKEN);
         final String refreshToken = generateToken(refreshClaims, jwtProperties.getRefreshTokenExpirationTime());
 
         return new Token(accessToken, refreshToken);
     }
+
 
     public Token reIssueToken(final String refreshToken) {
         validateToken(refreshToken, TokenType.REFRESH_TOKEN);
@@ -64,14 +65,14 @@ public class JWTProvider {
 
     public Long extractUserIdFromToken(String token) {
         try {
-            String sub = extractSubFromToken(token, TokenType.ACCESS_TOKEN);
-
-            // Convert sub to Long and return
-            return Long.parseLong(sub);
+            // JWT 토큰에서 OAuth ID (user-id)를 가져옴
+            String userId = extractSubFromToken(token, TokenType.ACCESS_TOKEN);
+            return Long.parseLong(userId);
         } catch (NumberFormatException e) {
             throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
         }
     }
+
 
     public boolean existsCachedRefreshToken(String refreshToken) {
         return tokenCacheOperator.contains(refreshToken);
@@ -85,12 +86,14 @@ public class JWTProvider {
         final Date now = new Date();
         return Jwts.builder()
                 .issuer(JWTConsts.TOKEN_ISSUER)
-                .claims(privateClaims.createClaimsMap())
+                .claim(JWTConsts.USER_CLAIMS, privateClaims.getSub())  // OAuth ID를 user-id로 설정
+                .claim(JWTConsts.TOKEN_TYPE, privateClaims.getTokenType().name())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationTime))
                 .signWith(getSigningKey())
                 .compact();
     }
+
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));

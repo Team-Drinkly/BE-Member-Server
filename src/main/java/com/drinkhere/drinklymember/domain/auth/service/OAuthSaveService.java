@@ -11,7 +11,8 @@ public class OAuthSaveService {
 
     private final OAuthRepository oAuthRepository;
 
-    public void save(final OAuth oAuth) {
+    public OAuth save(final OAuth oAuth) {
         oAuthRepository.save(oAuth);
+        return oAuth;
     }
 }

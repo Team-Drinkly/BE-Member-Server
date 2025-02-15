@@ -17,14 +17,16 @@ public class PrivateClaims {
     public Map<String, Object> createClaimsMap() {
         return Map.of(
                 JWTConsts.USER_CLAIMS, sub,
-                JWTConsts.TOKEN_TYPE, tokenType.name()
+                JWTConsts.TOKEN_TYPE, tokenType.name(),
+                "user-id", sub  // "user-id" 필드 추가
         );
     }
 
     public static Map<String, Class<?>> getClaimsTypeDetailMap() {
         return Map.of(
                 JWTConsts.USER_CLAIMS, String.class,
-                JWTConsts.TOKEN_TYPE, TokenType.class
+                JWTConsts.TOKEN_TYPE, TokenType.class,
+                "user-id", String.class  // "user-id" 필드 추가
         );
     }
 
