@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/member")
+@RequestMapping("/api/v1/member")
 public class SignUpController {
     private final InitializeNiceUseCase initializeNiceUseCase;
     private final NiceCallBackUseCase niceCallBackUseCase;
