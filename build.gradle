@@ -61,6 +61,9 @@ dependencies {
 
     // JSON 처리 라이브러리 (Gson)
     implementation 'com.google.code.gson:gson:2.10.1'
+
+//    // Kafka 마이크로 서비스 간 통신
+//    implementation 'org.springframework.kafka:spring-kafka'
 }
 
 dependencyManagement {

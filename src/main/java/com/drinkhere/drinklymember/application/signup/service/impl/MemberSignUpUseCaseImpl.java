@@ -1,15 +1,15 @@
-package com.drinkhere.drinklymember.application.nice.service.impl;
+package com.drinkhere.drinklymember.application.signup.service.impl;
 
-import com.drinkhere.drinklymember.application.nice.service.MemberSignUpUseCase;
+import com.drinkhere.drinklymember.application.signup.service.SignUpUseCase;
 import com.drinkhere.drinklymember.common.annotation.ApplicationService;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthUpdateService;
 import com.drinkhere.drinklymember.domain.member.dto.MemberSignUpRequest;
-import com.drinkhere.drinklymember.domain.member.service.MemberCommandService;
+import com.drinkhere.drinklymember.domain.member.service.member.MemberCommandService;
 import lombok.RequiredArgsConstructor;
 
 @ApplicationService
 @RequiredArgsConstructor
-public class MemberSignUpUseCaseImpl implements MemberSignUpUseCase {
+public class MemberSignUpUseCaseImpl implements SignUpUseCase<MemberSignUpRequest> {
     private final OAuthUpdateService oAuthUpdateService;
     private final MemberCommandService memberCommandService;
 
