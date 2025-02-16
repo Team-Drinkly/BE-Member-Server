@@ -1,4 +1,4 @@
-package com.drinkhere.drinklymember.domain.member.service;
+package com.drinkhere.drinklymember.domain.member.service.member;
 
 import com.drinkhere.drinklymember.common.annotation.DomainService;
 import com.drinkhere.drinklymember.domain.member.entity.Member;
