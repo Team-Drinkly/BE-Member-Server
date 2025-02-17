@@ -22,15 +22,5 @@ public class OwnerSignUpUseCaseImpl implements SignUpUseCase<OwnerSignUpRequest>
 
         // oauth 테이블 업데이트 -> register 상태로
         oAuthUpdateService.updateRegisterStatus(request.ownerId());
-
-//        // Kafka를 통해 store-service로 매장 정보 전송
-//        StoreCreateEvent storeEvent = StoreCreateEvent.builder()
-//                .ownerId(request.ownerId())
-//                .storeName(request.storeName())
-//                .storeTel(request.storeTel())
-//                .storeAddress(request.storeAddress())
-//                .build();
-//
-//        storeEventProducer.sendStoreCreatedEvent(storeEvent);
     }
 }

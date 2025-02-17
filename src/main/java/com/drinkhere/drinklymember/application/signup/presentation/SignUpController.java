@@ -20,11 +20,11 @@ public class SignUpController {
     private final SignUpUseCase<MemberSignUpRequest> memberSignUpService;
     private final SignUpUseCase<OwnerSignUpRequest> ownerSignUpService;
 
-    @GetMapping("/nice/{memberId}")
+    @GetMapping("/nice/{oauthId}")
     public ApplicationResponse<CreateNiceApiRequestDataDto> initNiceApi(
-            @PathVariable("memberId") Long memberId
+            @PathVariable("oauthId") Long oauthId
     ) {
-        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(memberId));
+        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(oauthId));
     }
 
     @GetMapping("/nice/call-back")

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 @ApplicationService
 @RequiredArgsConstructor
 public class MemberSignUpUseCaseImpl implements SignUpUseCase<MemberSignUpRequest> {
+
     private final OAuthUpdateService oAuthUpdateService;
     private final MemberCommandService memberCommandService;
 
