@@ -25,11 +25,13 @@ public class JWTProvider {
     private final MemberSubscribeQueryService memberSubscribeQueryService;
 
     /**
-     * Member 전용 JWT 생성 (memberId, 구독 여부 포함)
+     * Member 전용 JWT 생성 (memberId, 구독 여부, subscribeId 포함)
      */
     public Token generateMemberToken(Long memberId) {
         boolean isSubscribed = memberSubscribeQueryService.isMemberSubscribed(memberId);
-        PrivateClaims privateClaims = PrivateClaims.ofMember(memberId.toString(), TokenType.ACCESS_TOKEN, isSubscribed);
+        Long subscribeId = memberSubscribeQueryService.getSubscribeId(memberId);
+
+        PrivateClaims privateClaims = PrivateClaims.ofMember(memberId.toString(), TokenType.ACCESS_TOKEN, isSubscribed, subscribeId);
 
         String accessToken = generateToken(privateClaims, jwtProperties.getAccessTokenExpirationTime());
         String refreshToken = generateToken(privateClaims, jwtProperties.getRefreshTokenExpirationTime());
@@ -88,10 +90,23 @@ public class JWTProvider {
 
     public Long extractUserIdFromToken(String token) {
         try {
-            // JWT 토큰에서 OAuth ID (user-id)를 가져옴
             String userId = extractSubFromToken(token, TokenType.ACCESS_TOKEN);
             return Long.parseLong(userId);
         } catch (NumberFormatException e) {
+            throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
+        }
+    }
+
+    /**
+     * JWT에서 `subscribeId` 추출 (멤버 전용)
+     */
+    public Long extractSubscribeIdFromToken(String token) {
+        try {
+            return initializeJwtParser(TokenType.ACCESS_TOKEN)
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("subscribe-id", Long.class);
+        } catch (Exception e) {
             throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
         }
     }

@@ -1,6 +1,6 @@
 package com.drinkhere.drinklymember.domain.auth.handler;
 
-import com.drinkhere.drinklymember.domain.auth.entity.OAuth;
+import com.drinkhere.drinklymember.domain.auth.entity.OAuthMember;
 import com.drinkhere.drinklymember.domain.auth.handler.request.OAuthSuccessEvent;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthQueryService;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthSaveService;
@@ -30,22 +30,22 @@ public class OAuthSuccessHandler {
         }
 
         // OAuth ID가 없을 경우만 저장
-        OAuth oAuth = OAuth.of(
+        OAuthMember oAuth = OAuthMember.of(
                 oAuthSuccessEvent.provider(),
                 oAuthSuccessEvent.sub()
         );
 
-        OAuth savedOAuth = oAuthSaveService.save(oAuth);
+        OAuthMember savedOAuth = oAuthSaveService.save(oAuth);
         log.info("OAuth ID saved: {}", savedOAuth.getId());
     }
 
     private void saveOAuth(OAuthSuccessEvent oAuthSuccessEvent) {
-        OAuth oAuth = OAuth.of(
+        OAuthMember oAuth = OAuthMember.of(
                 oAuthSuccessEvent.provider(),
                 oAuthSuccessEvent.sub()
         );
 
-        OAuth savedOAuth = oAuthSaveService.save(oAuth); // 저장 후 id 확인
+        OAuthMember savedOAuth = oAuthSaveService.save(oAuth); // 저장 후 id 확인
 
         // 이벤트 다시 발행 (oauthId 포함)
         publisher.publishEvent(OAuthSuccessEvent.of(

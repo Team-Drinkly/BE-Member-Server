@@ -9,12 +9,14 @@ import java.util.Map;
 public class PrivateClaims {
     private final String sub;
     private final TokenType tokenType;
-    private final Boolean isSubscribed; // 회원 구독 여부 추가
+    private final Boolean isSubscribed;
+    private final Long subscribeId;
 
-    private PrivateClaims(String sub, TokenType tokenType, Boolean isSubscribed) {
+    private PrivateClaims(String sub, TokenType tokenType, Boolean isSubscribed, Long subscribeId) {
         this.sub = sub;
         this.tokenType = tokenType;
-        this.isSubscribed = isSubscribed;
+        this.isSubscribed = isSubscribed != null ? isSubscribed : false;
+        this.subscribeId = subscribeId != null ? subscribeId : -1L;
     }
 
     /**
@@ -24,10 +26,9 @@ public class PrivateClaims {
         Map<String, Object> claims = new HashMap<>();
         claims.put(JWTConsts.USER_CLAIMS, sub);
         claims.put(JWTConsts.TOKEN_TYPE, tokenType.name());
-        claims.put("user-id", sub);  // "user-id" 필드 추가
-        if (isSubscribed != null) {
-            claims.put("isSubscribed", isSubscribed); // 구독 여부 추가
-        }
+        claims.put("user-id", sub);
+        claims.put("isSubscribed", isSubscribed);
+        claims.put("subscribe-id", subscribeId);
         return claims;
     }
 
@@ -39,21 +40,22 @@ public class PrivateClaims {
                 JWTConsts.USER_CLAIMS, String.class,
                 JWTConsts.TOKEN_TYPE, TokenType.class,
                 "user-id", String.class,
-                "isSubscribed", Boolean.class // 구독 여부 타입 추가
+                "isSubscribed", Boolean.class,
+                "subscribe-id", Long.class
         );
     }
 
     /**
-     * Member 전용 Claims (구독 여부 포함)
+     * Member 전용 Claims (구독 여부 및 구독 ID 포함)
      */
-    public static PrivateClaims ofMember(String sub, TokenType tokenType, boolean isSubscribed) {
-        return new PrivateClaims(sub, tokenType, isSubscribed);
+    public static PrivateClaims ofMember(String sub, TokenType tokenType, Boolean isSubscribed, Long subscribeId) {
+        return new PrivateClaims(sub, tokenType, isSubscribed, subscribeId);
     }
 
     /**
-     * Owner 전용 Claims (구독 여부 제외)
+     * Owner 전용 Claims (구독 여부 및 구독 ID 제외, 기본값 적용)
      */
     public static PrivateClaims ofOwner(String sub, TokenType tokenType) {
-        return new PrivateClaims(sub, tokenType, null);
+        return new PrivateClaims(sub, tokenType, false, -1L);
     }
 }
