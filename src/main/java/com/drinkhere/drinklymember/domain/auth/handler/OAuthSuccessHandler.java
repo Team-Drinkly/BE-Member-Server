@@ -1,6 +1,8 @@
 package com.drinkhere.drinklymember.domain.auth.handler;
 
 import com.drinkhere.drinklymember.domain.auth.entity.OAuthMember;
+import com.drinkhere.drinklymember.domain.auth.entity.OAuthOwner;
+import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.domain.auth.handler.request.OAuthSuccessEvent;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthQueryService;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthSaveService;
@@ -22,39 +24,56 @@ public class OAuthSuccessHandler {
 
     @EventListener(OAuthSuccessEvent.class)
     @Transactional
-    public void handle(OAuthSuccessEvent oAuthSuccessEvent) {
-        // OAuth ID가 이미 포함된 경우 저장할 필요 없음
-        if (oAuthSuccessEvent.userId() != null) {
-            log.info("OAuth ID already exists: {}", oAuthSuccessEvent.userId());
+    public void handle(OAuthSuccessEvent event) {
+        log.info("🚀 OAuthSuccessHandler - OAuth 로그인 성공 이벤트 수신: provider={}, sub={}, authority={}",
+                event.provider(), event.sub(), event.authority());
+
+        // 이미 존재하는 경우 처리 안 함
+        if (event.userId() != null) {
+            log.info("기존 OAuth ID 존재: {}", event.userId());
             return;
         }
 
-        // OAuth ID가 없을 경우만 저장
-        OAuthMember oAuth = OAuthMember.of(
-                oAuthSuccessEvent.provider(),
-                oAuthSuccessEvent.sub()
-        );
-
-        OAuthMember savedOAuth = oAuthSaveService.save(oAuth);
-        log.info("OAuth ID saved: {}", savedOAuth.getId());
+        if (event.authority() == Authority.MEMBER) {
+            log.info("🔍 [멤버] OAuth 저장 시작: sub={}", event.sub());
+            OAuthMember savedOAuth = saveOAuthMember(event);
+            publishOAuthEvent(event, savedOAuth.getId());
+        } else if (event.authority() == Authority.OWNER) {
+            log.info("🔍 [사장님] OAuth 저장 시작: sub={}", event.sub());
+            OAuthOwner savedOAuth = saveOAuthOwner(event);
+            publishOAuthEvent(event, savedOAuth.getId());
+        }
     }
 
-    private void saveOAuth(OAuthSuccessEvent oAuthSuccessEvent) {
-        OAuthMember oAuth = OAuthMember.of(
-                oAuthSuccessEvent.provider(),
-                oAuthSuccessEvent.sub()
-        );
+    /**
+     * 멤버 OAuth 저장
+     */
+    private OAuthMember saveOAuthMember(OAuthSuccessEvent event) {
+        OAuthMember oAuth = OAuthMember.of(event.provider(), event.sub());
+        return oAuthSaveService.memberSave(oAuth);
+    }
 
-        OAuthMember savedOAuth = oAuthSaveService.save(oAuth); // 저장 후 id 확인
+    /**
+     * 사장님 OAuth 저장
+     */
+    private OAuthOwner saveOAuthOwner(OAuthSuccessEvent event) {
+        OAuthOwner oAuth = OAuthOwner.of(event.provider(), event.sub());
+        return oAuthSaveService.ownerSave(oAuth);
+    }
 
-        // 이벤트 다시 발행 (oauthId 포함)
+    /**
+     * OAuth 저장 후 이벤트 발행
+     */
+    private void publishOAuthEvent(OAuthSuccessEvent event, Long oAuthId) {
+        log.info("🚀 OAuthSuccessHandler - OAuth 저장 완료, 이벤트 재발행: oauthId={}", oAuthId);
+
         publisher.publishEvent(OAuthSuccessEvent.of(
-                oAuthSuccessEvent.username(),
-                oAuthSuccessEvent.email(),
-                oAuthSuccessEvent.provider(),
-                oAuthSuccessEvent.sub(),
-                savedOAuth.getId()  // OAuth 엔티티의 ID 전달
+                event.username(),
+                event.email(),
+                event.provider(),
+                event.sub(),
+                oAuthId,
+                event.authority()
         ));
     }
-
 }
