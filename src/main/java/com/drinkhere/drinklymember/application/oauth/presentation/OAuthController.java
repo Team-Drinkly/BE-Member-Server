@@ -3,6 +3,7 @@ package com.drinkhere.drinklymember.application.oauth.presentation;
 import com.drinkhere.drinklymember.application.oauth.service.LogoutUseCase;
 import com.drinkhere.drinklymember.application.oauth.service.OAuthUseCase;
 import com.drinkhere.drinklymember.application.oauth.service.ReissueUseCase;
+import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.auth.consts.AuthConsts;
 import com.drinkhere.drinklymember.domain.auth.dto.OAuthResponse;
 import com.drinkhere.drinklymember.domain.auth.dto.TokenReissueResponse;
@@ -22,15 +23,16 @@ public class OAuthController {
     private final ReissueUseCase reissueUseCase;
 
     @GetMapping("/oauth/{provider}")
-    public OAuthResponse oAuthLogin(@PathVariable Provider provider,
-                                    @RequestHeader("Authorization") String accessToken
+    public ApplicationResponse<OAuthResponse> oAuthLogin(
+            @PathVariable Provider provider,
+            @RequestHeader("Authorization") String accessToken
     ) {
-        return oAuthUseCase.oAuthLogin(provider, accessToken);
+        return ApplicationResponse.ok(oAuthUseCase.oAuthLogin(provider, accessToken));
     }
 
     @PostMapping("/reissue")
-    public TokenReissueResponse reissue(@RequestHeader(AuthConsts.REFRESH_TOKEN_HEADER) String refreshToken) {
-        return reissueUseCase.reissue(refreshToken);
+    public ApplicationResponse<TokenReissueResponse> reissue(@RequestHeader(AuthConsts.REFRESH_TOKEN_HEADER) String refreshToken) {
+        return ApplicationResponse.ok(reissueUseCase.reissue(refreshToken));
     }
 
 

@@ -1,6 +1,5 @@
 package com.drinkhere.drinklymember.domain.auth.service;
 
-import com.drinkhere.drinklymember.common.annotation.ApplicationService;
 import com.drinkhere.drinklymember.common.annotation.DomainService;
 import com.drinkhere.drinklymember.common.exception.oauth.AuthErrorCode;
 import com.drinkhere.drinklymember.common.exception.oauth.OAuthNotFoundException;
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 @DomainService
+@Transactional
 @RequiredArgsConstructor
 public class OAuthUpdateService {
     private final OAuthRepository oAuthRepository;
