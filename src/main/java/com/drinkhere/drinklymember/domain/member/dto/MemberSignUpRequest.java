@@ -4,7 +4,6 @@ import com.drinkhere.drinklymember.domain.member.entity.Member;
 import com.drinkhere.drinklymember.domain.member.enums.Gender;
 import com.drinkhere.drinklymember.domain.member.enums.MobileCo;
 import com.drinkhere.drinklymember.domain.member.enums.NationalInfo;
-import com.drinkhere.drinklymember.nice.dto.NiceDecryptedData;
 
 public record MemberSignUpRequest(
         Long memberId,

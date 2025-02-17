@@ -7,5 +7,13 @@ import java.util.Optional;
 
 public interface MemberSubscribeRepository extends JpaRepository<MemberSubscribe, Long> {
 
-    Optional<MemberSubscribe> findByMemberId(Long memberId); // Optional로 변경
+    /**
+     * 멤버 ID와 구독 상태를 기준으로 구독 정보 조회
+     */
+    Optional<MemberSubscribe> findByMemberIdAndIsSubscribed(Long memberId, Boolean isSubscribed);
+
+    /**
+     * 멤버가 구독 상태인지 확인
+     */
+    boolean existsByMemberIdAndIsSubscribed(Long memberId, Boolean isSubscribed);
 }
