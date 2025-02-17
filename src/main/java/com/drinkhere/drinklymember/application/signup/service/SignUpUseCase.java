@@ -1,5 +1,8 @@
 package com.drinkhere.drinklymember.application.signup.service;
 
+import com.drinkhere.drinklymember.domain.auth.dto.Token;
+
 public interface SignUpUseCase<T> {
-    void signUp(T request);
+
+    Token signUp(T request);
 }
