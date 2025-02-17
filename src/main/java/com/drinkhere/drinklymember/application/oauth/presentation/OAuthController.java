@@ -7,6 +7,7 @@ import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.auth.consts.AuthConsts;
 import com.drinkhere.drinklymember.domain.auth.dto.OAuthResponse;
 import com.drinkhere.drinklymember.domain.auth.dto.TokenReissueResponse;
+import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.domain.auth.enums.Provider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +23,13 @@ public class OAuthController {
     private final LogoutUseCase logoutUseCase;
     private final ReissueUseCase reissueUseCase;
 
-    @GetMapping("/oauth/{provider}")
+    @PostMapping("/oauth/{authority}/{provider}")
     public ApplicationResponse<OAuthResponse> oAuthLogin(
+            @PathVariable Authority authority,
             @PathVariable Provider provider,
             @RequestHeader("Authorization") String accessToken
     ) {
-        return ApplicationResponse.ok(oAuthUseCase.oAuthLogin(provider, accessToken));
+        return ApplicationResponse.ok(oAuthUseCase.oAuthLogin(authority, provider, accessToken));
     }
 
     @PostMapping("/reissue")

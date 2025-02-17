@@ -20,7 +20,6 @@ public class KakaoClient {
         return webClient.get()
                 .uri("/v2/user/me")
                 .header("Authorization", "Bearer " + token)
-//                .header("Authorization", "Bearer 1Z9tLHaZUQtrfxliqPhIqCH8N2amSNYRAAAAAQo9c5oAAAGT5Lgi2qQkDeVh20ZZ")
                 .retrieve()
                 .bodyToMono(KakaoUserInfo.class)
                 .block(); // 동기 호출, 필요에 따라 비동기로 변경 가능
