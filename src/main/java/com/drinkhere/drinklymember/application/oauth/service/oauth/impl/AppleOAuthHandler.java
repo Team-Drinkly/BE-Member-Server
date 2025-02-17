@@ -78,7 +78,37 @@ public class AppleOAuthHandler implements AuthHandler {
                 });
 
         log.info("✅ Apple 공개 키 매칭 성공 - kid: {}", kid);
-        return getOIDCTokenJws(unverifiedToken, pubKey.getN(), pubKey.getE(), APPLE_ISS, appleProperties.getApple());
+
+        // `aud` 값 결정 (Customer vs Manager)
+        String audience = determineAudience(unverifiedToken);
+
+        return getOIDCTokenJws(unverifiedToken, pubKey.getN(), pubKey.getE(), APPLE_ISS, audience);
+    }
+
+    /**
+     * Apple JWT의 aud 값을 확인하여 고객용(CUSTOMER)인지 관리자용(MANAGER)인지 결정
+     */
+    private String determineAudience(String token) {
+        try {
+            Jws<Claims> parsedToken = Jwts.parser()
+                    .build()
+                    .parseSignedClaims(token);
+
+            String aud = parsedToken.getPayload().getAudience().toString();
+            log.info("🔍 Apple JWT aud 값: {}", aud);
+
+            if (appleProperties.getCustomer().equals(aud)) {
+                return appleProperties.getCustomer();
+            } else if (appleProperties.getManager().equals(aud)) {
+                return appleProperties.getManager();
+            } else {
+                log.error("❌ Apple JWT aud 값이 예상과 다름: {}", aud);
+                throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
+            }
+        } catch (Exception e) {
+            log.error("❌ Apple JWT aud 값 확인 중 예외 발생", e);
+            throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
+        }
     }
 
     public Jws<Claims> getOIDCTokenJws(String token, String modulus, String exponent, String iss, String aud) {
