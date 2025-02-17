@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OAuth {
+public class OAuthOwner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "oauth_id")
+    @Column(name = "oauth_owner_id")
     private Long id;
 
     @Enumerated(value = EnumType.STRING)
@@ -21,12 +21,21 @@ public class OAuth {
 
     private String sub;
 
-    private OAuth(Provider provider, String sub) {
+    @Column(name = "is_registered", nullable = false)
+    boolean isRegistered;
+
+    private OAuthOwner(Provider provider, String sub) {
         this.provider = provider;
         this.sub = sub;
+        this.isRegistered = false;
     }
 
-    public static OAuth of(Provider provider, String sub) {
-        return new OAuth(provider, sub);
+    public static OAuthOwner of(Provider provider, String sub) {
+        return new OAuthOwner(provider, sub);
+    }
+
+    public void updateRegisterStatus() { // 가입 처리
+        this.isRegistered = true;
     }
 }
+

@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "app-id")
+@ConfigurationProperties(prefix = "app-id.apple")
 public class AppleProperties {
-
-    private String apple;
+    private String customer;
+    private String manager;
 }
