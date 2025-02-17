@@ -9,9 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MemberQueryService {
+
     private final MemberRepository memberRepository;
 
     public boolean existsByDi(String di) {
         return memberRepository.existsByDi(di);
+    }
+
+    public boolean existsById(Long memberId) {
+        return memberRepository.existsById(memberId);
     }
 }

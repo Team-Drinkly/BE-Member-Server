@@ -4,11 +4,7 @@ import com.drinkhere.drinklymember.domain.auditing.BaseTimeEntity;
 import com.drinkhere.drinklymember.domain.member.enums.Gender;
 import com.drinkhere.drinklymember.domain.member.enums.MobileCo;
 import com.drinkhere.drinklymember.domain.member.enums.NationalInfo;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeEntity {
+
     @Id
     @Column(name = "member_id", unique = true)
     private Long id;

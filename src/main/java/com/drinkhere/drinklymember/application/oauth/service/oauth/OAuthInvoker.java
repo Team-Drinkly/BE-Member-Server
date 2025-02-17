@@ -2,18 +2,17 @@ package com.drinkhere.drinklymember.application.oauth.service.oauth;
 
 import com.drinkhere.drinklymember.common.exception.oauth.AuthErrorCode;
 import com.drinkhere.drinklymember.common.exception.oauth.AuthException;
-import com.drinkhere.drinklymember.domain.auth.consts.AuthConsts;
 import com.drinkhere.drinklymember.domain.auth.dto.OAuthRequest;
 import com.drinkhere.drinklymember.domain.auth.dto.OAuthResponse;
 import com.drinkhere.drinklymember.domain.auth.dto.OAuthUserInfo;
-import com.drinkhere.drinklymember.domain.auth.entity.OAuth;
+import com.drinkhere.drinklymember.domain.auth.entity.OAuthMember;
+import com.drinkhere.drinklymember.domain.auth.entity.OAuthOwner;
+import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.domain.auth.handler.request.OAuthSuccessEvent;
-import com.drinkhere.drinklymember.domain.auth.jwt.JWTProvider;
-import com.drinkhere.drinklymember.domain.auth.jwt.TokenType;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthQueryService;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthSaveService;
-import com.drinkhere.drinklymember.domain.auth.service.TokenSaveService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -21,50 +20,115 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuthInvoker {
 
     private final List<AuthHandler> authHandlerList;
-    private final JWTProvider jwtProvider;
-
-    private final TokenSaveService tokenSaveService;
     private final OAuthQueryService oAuthQueryService;
     private final OAuthSaveService oAuthSaveService;
-
     private final ApplicationEventPublisher publisher;
 
     public OAuthResponse execute(OAuthRequest request) {
+        log.info("🚀 OAuthInvoker - OAuth 로그인 요청 시작: provider={}, sub={}, authority={}",
+                request.getProvider(), request.getAccessToken(), request.getAuthority());
+
         final OAuthUserInfo oAuthUserInfo = attemptLogin(request);
-        publishEvent(oAuthUserInfo, request);
-        return generateServerAuthenticationTokens(oAuthUserInfo.getSub());
+        log.info("✅ OAuthInvoker - 로그인 성공: email={}, sub={}", oAuthUserInfo.getEmail(), oAuthUserInfo.getSub());
+
+        if (request.getAuthority() == Authority.MEMBER) {
+            return handleMemberOAuth(oAuthUserInfo, request);
+        } else {
+            return handleOwnerOAuth(oAuthUserInfo, request);
+        }
     }
 
-    private void publishEvent(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
-        // OAuth 테이블에서 OAuth ID 조회
-        OAuth oAuth = oAuthQueryService.findBySub(oAuthUserInfo.getSub());
+    private OAuthResponse handleMemberOAuth(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
+        log.info("🔍 [START] OAuthInvoker - 멤버 OAuth 처리 시작: sub={}", oAuthUserInfo.getSub());
 
-        // 존재하지 않으면 새로 저장
-        if (oAuth == null) {
-            oAuth = saveOAuth(oAuthUserInfo, request);
+        OAuthMember oAuth = null;
+        try {
+            log.info("🔍 DB에서 멤버 sub={} 값으로 사용자 조회 시작", oAuthUserInfo.getSub());
+            oAuth = oAuthQueryService.findMemberBySub(oAuthUserInfo.getSub());
+        } catch (Exception e) {
+            log.error("❌ 멤버 DB 조회 중 예외 발생: {}", e.getMessage(), e);
         }
 
-        // OAuth ID를 userId로 설정하여 이벤트 발행
-        publisher.publishEvent(OAuthSuccessEvent.of(
-                oAuthUserInfo.getNickname(),
-                oAuthUserInfo.getEmail(),
-                request.getProvider(),
-                oAuthUserInfo.getSub(),
-                oAuth.getId()  // OAuth ID를 userId로 설정
-        ));
+        if (oAuth == null) {
+            log.info("⚠ 기존 멤버 없음, 신규 OAuth 멤버 생성 필요");
+            oAuth = saveOAuthMember(oAuthUserInfo, request);
+        } else {
+            log.info("✅ 기존 멤버 조회 성공: id={}, sub={}", oAuth.getId(), oAuth.getSub());
+        }
+
+        publishOAuthSuccessEvent(oAuthUserInfo, request, oAuth.getId());
+
+        log.info("🔍 [END] OAuthInvoker - 멤버 처리 완료: id={}, sub={}", oAuth.getId(), oAuth.getSub());
+        return new OAuthResponse(oAuth.getId(), oAuth.isRegistered());
     }
 
-    private OAuth saveOAuth(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
-        OAuth oAuth = OAuth.of(
-                request.getProvider(),
-                oAuthUserInfo.getSub()
-        );
-        return oAuthSaveService.save(oAuth);
+    private OAuthResponse handleOwnerOAuth(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
+        log.info("🔍 [START] OAuthInvoker - 사장님 OAuth 처리 시작: sub={}", oAuthUserInfo.getSub());
+
+        OAuthOwner oAuth = null;
+        try {
+            log.info("🔍 DB에서 사장님 sub={} 값으로 사용자 조회 시작", oAuthUserInfo.getSub());
+            oAuth = oAuthQueryService.findOwnerBySub(oAuthUserInfo.getSub());
+        } catch (Exception e) {
+            log.error("❌ 사장님 DB 조회 중 예외 발생: {}", e.getMessage(), e);
+        }
+
+        if (oAuth == null) {
+            log.info("⚠ 기존 사장님 없음, 신규 OAuth 사장님 생성 필요");
+            oAuth = saveOAuthOwner(oAuthUserInfo, request);
+        } else {
+            log.info("✅ 기존 사장님 조회 성공: id={}, sub={}", oAuth.getId(), oAuth.getSub());
+        }
+
+        publishOAuthSuccessEvent(oAuthUserInfo, request, oAuth.getId());
+
+        log.info("🔍 [END] OAuthInvoker - 사장님 처리 완료: id={}, sub={}", oAuth.getId(), oAuth.getSub());
+        return new OAuthResponse(oAuth.getId(), oAuth.isRegistered());
     }
 
+    private OAuthMember saveOAuthMember(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
+        log.info("🔍 OAuthInvoker - OAuth 멤버 저장: sub={}, provider={}", oAuthUserInfo.getSub(), request.getProvider());
+
+        OAuthMember oAuth = OAuthMember.of(request.getProvider(), oAuthUserInfo.getSub());
+        OAuthMember savedOAuth = oAuthSaveService.memberSave(oAuth);
+
+        log.info("✅ OAuthInvoker - OAuth 멤버 저장 완료: id={}", savedOAuth.getId());
+        return savedOAuth;
+    }
+
+    private OAuthOwner saveOAuthOwner(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
+        log.info("🔍 OAuthInvoker - OAuth 사장님 저장: sub={}, provider={}", oAuthUserInfo.getSub(), request.getProvider());
+
+        OAuthOwner oAuth = OAuthOwner.of(request.getProvider(), oAuthUserInfo.getSub());
+        OAuthOwner savedOAuth = oAuthSaveService.ownerSave(oAuth);
+
+        log.info("✅ OAuthInvoker - OAuth 사장님 저장 완료: id={}", savedOAuth.getId());
+        return savedOAuth;
+    }
+
+    private void publishOAuthSuccessEvent(OAuthUserInfo oAuthUserInfo, OAuthRequest request, Long id) {
+        log.info("🚀 OAuthInvoker - 이벤트 발행 시작: nickname={}, email={}, provider={}, sub={}",
+                oAuthUserInfo.getNickname(), oAuthUserInfo.getEmail(), request.getProvider(), oAuthUserInfo.getSub());
+
+        try {
+            publisher.publishEvent(OAuthSuccessEvent.of(
+                    oAuthUserInfo.getNickname(),
+                    oAuthUserInfo.getEmail(),
+                    request.getProvider(),
+                    oAuthUserInfo.getSub(),
+                    id,
+                    request.getAuthority()
+            ));
+            log.info("✅ OAuthInvoker - 이벤트 발행 완료");
+        } catch (Exception e) {
+            log.error("❌ OAuth 이벤트 발행 중 예외 발생: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 
     private OAuthUserInfo attemptLogin(OAuthRequest request) {
         for (AuthHandler authHandler : authHandlerList) {
@@ -73,27 +137,5 @@ public class OAuthInvoker {
             }
         }
         throw new AuthException(AuthErrorCode.OAUTH_FAIL);
-    }
-
-    private OAuthResponse generateServerAuthenticationTokens(String sub) {
-        // 🛠 OAuth ID 조회
-        OAuth oAuth = oAuthQueryService.findBySub(sub);
-
-        if (oAuth == null) {
-            throw new AuthException(AuthErrorCode.OAUTH_NOT_FOUND);
-        }
-
-        final JWTProvider.Token token = jwtProvider.generateToken(sub, oAuth.getId());
-        tokenSaveService.saveToken(token.refreshToken(), TokenType.REFRESH_TOKEN, oAuth.getId().toString());
-        return buildOAuthResponse(token);
-    }
-
-    private OAuthResponse buildOAuthResponse(JWTProvider.Token token) {
-        final String accessToken = AuthConsts.AUTHENTICATION_TYPE_PREFIX + token.accessToken();
-        final String refreshToken = AuthConsts.AUTHENTICATION_TYPE_PREFIX + token.refreshToken();
-        return OAuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
     }
 }

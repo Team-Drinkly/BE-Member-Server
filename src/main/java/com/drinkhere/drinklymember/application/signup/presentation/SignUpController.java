@@ -2,6 +2,7 @@ package com.drinkhere.drinklymember.application.signup.presentation;
 
 import com.drinkhere.drinklymember.application.signup.service.SignUpUseCase;
 import com.drinkhere.drinklymember.common.response.ApplicationResponse;
+import com.drinkhere.drinklymember.domain.auth.dto.Token;
 import com.drinkhere.drinklymember.domain.member.dto.GetNiceApiResultResponse;
 import com.drinkhere.drinklymember.domain.member.dto.MemberSignUpRequest;
 import com.drinkhere.drinklymember.domain.member.dto.OwnerSignUpRequest;
@@ -20,11 +21,11 @@ public class SignUpController {
     private final SignUpUseCase<MemberSignUpRequest> memberSignUpService;
     private final SignUpUseCase<OwnerSignUpRequest> ownerSignUpService;
 
-    @GetMapping("/nice/{memberId}")
+    @GetMapping("/nice/{oauthId}")
     public ApplicationResponse<CreateNiceApiRequestDataDto> initNiceApi(
-            @PathVariable("memberId") Long memberId
+            @PathVariable("oauthId") Long oauthId
     ) {
-        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(memberId));
+        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(oauthId));
     }
 
     @GetMapping("/nice/call-back")
@@ -38,14 +39,13 @@ public class SignUpController {
     }
 
     @PostMapping("/signup")
-    public ApplicationResponse<String> signUpMember(@RequestBody MemberSignUpRequest memberSignUpRequest) {
-        memberSignUpService.signUp(memberSignUpRequest);
-        return ApplicationResponse.created("성공적으로 회원가입을 처리했습니다.");
+    public ApplicationResponse<Token> signUpMember(@RequestBody MemberSignUpRequest memberSignUpRequest) {
+        return ApplicationResponse.created(memberSignUpService.signUp(memberSignUpRequest));
     }
 
     @PostMapping("/signup/owner")
-    public ApplicationResponse<String> signUpOwner(@RequestBody OwnerSignUpRequest ownerSignUpRequest) {
+    public ApplicationResponse<Token> signUpOwner(@RequestBody OwnerSignUpRequest ownerSignUpRequest) {
         ownerSignUpService.signUp(ownerSignUpRequest);
-        return ApplicationResponse.created("성공적으로 회원가입을 처리했습니다.");
+        return ApplicationResponse.created(ownerSignUpService.signUp(ownerSignUpRequest));
     }
 }

@@ -41,7 +41,7 @@ public class InitializeNiceUseCase {
     private static final String SYMMETRIC_ENCRYPTION_ALGORITHM_AES = "AES"; // 대칭키 암호화 알고리즘
     private static final String MAC_ALGORITHM_HMAC_SHA256 = "HmacSHA256";
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
-    private static final String RETURN_URL = "/member/nice/call-back?mid=";
+    private static final String RETURN_URL = "/api/v1/member/nice/call-back?mid=";
     private static final String REDIS_REQUEST_NO_KEY_TEMPLATE = "memberId:%d:requestNo";
 
     private final NiceClient niceClient;
