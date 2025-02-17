@@ -4,6 +4,8 @@ import com.drinkhere.drinklymember.common.cache.operators.ValueOperator;
 import com.drinkhere.drinklymember.common.exception.oauth.AuthErrorCode;
 import com.drinkhere.drinklymember.common.exception.token.ExpiredTokenException;
 import com.drinkhere.drinklymember.common.exception.token.InvalidTokenException;
+import com.drinkhere.drinklymember.domain.auth.dto.Token;
+import com.drinkhere.drinklymember.domain.member.service.member.MemberSubscribeQueryService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.jackson.io.JacksonDeserializer;
@@ -13,43 +15,64 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
 public class JWTProvider {
+
     private final JWTProperties jwtProperties;
     private final ValueOperator<String, Token> tokenCacheOperator;
+    private final MemberSubscribeQueryService memberSubscribeQueryService;
 
-    public String generateAccessToken(final String sub) {
-        return generateToken(PrivateClaims.of(sub, TokenType.ACCESS_TOKEN), jwtProperties.getAccessTokenExpirationTime());
-    }
+    /**
+     * Member 전용 JWT 생성 (memberId, 구독 여부 포함)
+     */
+    public Token generateMemberToken(Long memberId) {
+        boolean isSubscribed = memberSubscribeQueryService.isMemberSubscribed(memberId);
+        PrivateClaims privateClaims = PrivateClaims.ofMember(memberId.toString(), TokenType.ACCESS_TOKEN, isSubscribed);
 
-    public String generateRefreshToken(final String sub) {
-        return generateToken(PrivateClaims.of(sub, TokenType.REFRESH_TOKEN), jwtProperties.getRefreshTokenExpirationTime());
-    }
-
-    public Token generateToken(String sub, Long userId) {
-        // OAuth ID를 `user-id`로 저장하여 토큰 생성
-        final PrivateClaims privateClaims = PrivateClaims.of(userId.toString(), TokenType.ACCESS_TOKEN);
-        final String accessToken = generateToken(privateClaims, jwtProperties.getAccessTokenExpirationTime());
-
-        final PrivateClaims refreshClaims = PrivateClaims.of(userId.toString(), TokenType.REFRESH_TOKEN);
-        final String refreshToken = generateToken(refreshClaims, jwtProperties.getRefreshTokenExpirationTime());
+        String accessToken = generateToken(privateClaims, jwtProperties.getAccessTokenExpirationTime());
+        String refreshToken = generateToken(privateClaims, jwtProperties.getRefreshTokenExpirationTime());
 
         return new Token(accessToken, refreshToken);
     }
 
+    /**
+     * Owner 전용 JWT 생성 (ownerId만 포함)
+     */
+    public Token generateOwnerToken(Long ownerId) {
+        PrivateClaims privateClaims = PrivateClaims.ofOwner(ownerId.toString(), TokenType.ACCESS_TOKEN);
 
-    public Token reIssueToken(final String refreshToken) {
-        validateToken(refreshToken, TokenType.REFRESH_TOKEN);
-        final String sub = extractSubFromToken(refreshToken, TokenType.REFRESH_TOKEN);
-        final String newAccessToken = generateAccessToken(sub);
-        final String newRefreshToken = generateRefreshToken(sub);
+        String accessToken = generateToken(privateClaims, jwtProperties.getAccessTokenExpirationTime());
+        String refreshToken = generateToken(privateClaims, jwtProperties.getRefreshTokenExpirationTime());
 
-        tokenCacheOperator.setWithExpire(refreshToken, new Token(newAccessToken, newRefreshToken), 1, TimeUnit.MINUTES);
+        return new Token(accessToken, refreshToken);
+    }
 
-        return new Token(newAccessToken, newRefreshToken);
+    /**
+     * JWT 생성 (공통 메서드)
+     */
+    private String generateToken(final PrivateClaims privateClaims, final Long expirationTime) {
+        final Date now = new Date();
+        return Jwts.builder()
+                .issuer(JWTConsts.TOKEN_ISSUER)
+                .claims(privateClaims.createClaimsMap()) // 동적 Claims 추가
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expirationTime))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));
+    }
+
+    public boolean existsCachedRefreshToken(String refreshToken) {
+        return tokenCacheOperator.contains(refreshToken);
+    }
+
+    public Token getCachedToken(String refreshToken) {
+        return tokenCacheOperator.get(refreshToken);
     }
 
     public String extractSubFromToken(String token, TokenType tokenType) {
@@ -73,32 +96,6 @@ public class JWTProvider {
         }
     }
 
-
-    public boolean existsCachedRefreshToken(String refreshToken) {
-        return tokenCacheOperator.contains(refreshToken);
-    }
-
-    public Token getCachedToken(String refreshToken) {
-        return tokenCacheOperator.get(refreshToken);
-    }
-
-    private String generateToken(final PrivateClaims privateClaims, final Long expirationTime) {
-        final Date now = new Date();
-        return Jwts.builder()
-                .issuer(JWTConsts.TOKEN_ISSUER)
-                .claim(JWTConsts.USER_CLAIMS, privateClaims.getSub())  // OAuth ID를 user-id로 설정
-                .claim(JWTConsts.TOKEN_TYPE, privateClaims.getTokenType().name())
-                .issuedAt(now)
-                .expiration(new Date(now.getTime() + expirationTime))
-                .signWith(getSigningKey())
-                .compact();
-    }
-
-
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));
-    }
-
     public void validateToken(final String token, final TokenType tokenType) {
         final JwtParser jwtParser = initializeJwtParser(tokenType);
         try {
@@ -118,8 +115,4 @@ public class JWTProvider {
                 .require(JWTConsts.TOKEN_TYPE, tokenType)
                 .build();
     }
-
-    public record Token(String accessToken, String refreshToken) {
-    }
 }
-

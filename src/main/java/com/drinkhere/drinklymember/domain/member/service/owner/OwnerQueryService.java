@@ -11,4 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OwnerQueryService {
 
     private final OwnerRepository ownerRepository;
+
+    public boolean existsById(Long ownerId) {
+        return ownerRepository.existsById(ownerId);
+    }
 }

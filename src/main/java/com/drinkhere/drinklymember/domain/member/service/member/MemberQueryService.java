@@ -15,4 +15,8 @@ public class MemberQueryService {
     public boolean existsByDi(String di) {
         return memberRepository.existsByDi(di);
     }
+
+    public boolean existsById(Long memberId) {
+        return memberRepository.existsById(memberId);
+    }
 }

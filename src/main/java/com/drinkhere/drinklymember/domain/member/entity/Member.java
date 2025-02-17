@@ -46,11 +46,8 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false)
     private String di;
 
-    @Column(name = "is_subscribed", nullable = false)
-    private boolean isSubscribed;
-
     @Builder
-    public Member(Long id, String name, String nickname, String birthDate, Gender gender, NationalInfo nationalInfo, MobileCo mobileCo, String mobileNo, String di, Boolean isSubscribed) {
+    public Member(Long id, String name, String nickname, String birthDate, Gender gender, NationalInfo nationalInfo, MobileCo mobileCo, String mobileNo, String di) {
         this.id = id;
         this.name = name;
         this.nickname = nickname;
@@ -60,6 +57,5 @@ public class Member extends BaseTimeEntity {
         this.mobileCo = mobileCo;
         this.mobileNo = mobileNo;
         this.di = di;
-        this.isSubscribed = isSubscribed;
     }
 }
