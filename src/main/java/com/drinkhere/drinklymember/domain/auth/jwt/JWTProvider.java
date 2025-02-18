@@ -25,7 +25,7 @@ public class JWTProvider {
     private final MemberSubscribeQueryService memberSubscribeQueryService;
 
     /**
-     * Member 전용 JWT 생성 (memberId, 구독 여부, subscribeId 포함)
+     * Member 전용 JWT 생성 (`member-id` 포함)
      */
     public Token generateMemberToken(Long memberId) {
         boolean isSubscribed = memberSubscribeQueryService.isMemberSubscribed(memberId);
@@ -40,7 +40,7 @@ public class JWTProvider {
     }
 
     /**
-     * Owner 전용 JWT 생성 (ownerId만 포함)
+     * Owner 전용 JWT 생성 (`owner-id` 포함)
      */
     public Token generateOwnerToken(Long ownerId) {
         PrivateClaims privateClaims = PrivateClaims.ofOwner(ownerId.toString(), TokenType.ACCESS_TOKEN);
@@ -88,18 +88,28 @@ public class JWTProvider {
         }
     }
 
-    public Long extractUserIdFromToken(String token) {
+    public Long extractMemberIdFromToken(String token) {
         try {
-            String userId = extractSubFromToken(token, TokenType.ACCESS_TOKEN);
-            return Long.parseLong(userId);
-        } catch (NumberFormatException e) {
+            return initializeJwtParser(TokenType.ACCESS_TOKEN)
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("member-id", Long.class);
+        } catch (Exception e) {
             throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
         }
     }
 
-    /**
-     * JWT에서 `subscribeId` 추출 (멤버 전용)
-     */
+    public Long extractOwnerIdFromToken(String token) {
+        try {
+            return initializeJwtParser(TokenType.ACCESS_TOKEN)
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("owner-id", Long.class);
+        } catch (Exception e) {
+            throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
+        }
+    }
+
     public Long extractSubscribeIdFromToken(String token) {
         try {
             return initializeJwtParser(TokenType.ACCESS_TOKEN)

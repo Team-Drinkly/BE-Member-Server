@@ -17,7 +17,7 @@ public class JWTExtractUserDetailsUseCaseImpl implements JWTExtractUserDetailsUs
     public Long extract(final String token) {
         try {
             // 토큰에서 UserId 추출
-            return jwtProvider.extractUserIdFromToken(token);
+            return jwtProvider.extractMemberIdFromToken(token);
         } catch (Exception e) {
             // 예외 로깅 및 사용자 친화적인 예외 반환
             throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
