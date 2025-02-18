@@ -8,6 +8,7 @@ import com.drinkhere.drinklymember.domain.member.entity.MemberSubscribe;
 import com.drinkhere.drinklymember.domain.member.service.member.MemberQueryService;
 import com.drinkhere.drinklymember.domain.member.service.member.MemberSubscribeQueryService;
 import com.drinkhere.drinklymember.openfeign.client.StoreClient;
+import com.drinkhere.drinklymember.openfeign.dto.response.CountFreeDrinkHistories;
 import com.drinkhere.drinklymember.util.TimeUtil;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +26,7 @@ public class GetMemberProfileUseCase {
         if (isSubscribe.equals("false")) return GetMemberProfileResponse.toDto(member, false, null);
         else if (isSubscribe.equals("true")) {
             // 몇번 사용했는
-            int count = storeClient.getCountFreeDrinkHistoriesBySubscribeId(subscribeId);
+            CountFreeDrinkHistories countResponse = storeClient.getCountFreeDrinkHistoriesBySubscribeId(subscribeId);
 
             MemberSubscribe memberSubscribe = memberSubscribeQueryService.getMemberSubscribe(memberId);
 
@@ -33,7 +34,7 @@ public class GetMemberProfileUseCase {
 
             String expiredDate = TimeUtil.refineToDate(memberSubscribe.getExpireDate());
 
-            SubscribeInfo subscribeInfo = new SubscribeInfo(leftDays, expiredDate, count);
+            SubscribeInfo subscribeInfo = new SubscribeInfo(leftDays, expiredDate, countResponse.getCount());
 
             return GetMemberProfileResponse.toDto(member, true, subscribeInfo);
         }
