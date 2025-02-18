@@ -1,6 +1,7 @@
 package com.drinkhere.drinklymember.nice.service;
 
 import com.drinkhere.drinklymember.common.exception.nice.NiceException;
+import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.nice.dto.NiceCryptoData;
 import com.drinkhere.drinklymember.nice.dto.NiceRequestData;
 import com.drinkhere.drinklymember.nice.dto.response.CreateNiceApiRequestDataDto;
@@ -25,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.UUID;
 
-
 import static com.drinkhere.drinklymember.common.exception.nice.NiceErrorCode.*;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -41,14 +41,16 @@ public class InitializeNiceUseCase {
     private static final String SYMMETRIC_ENCRYPTION_ALGORITHM_AES = "AES"; // 대칭키 암호화 알고리즘
     private static final String MAC_ALGORITHM_HMAC_SHA256 = "HmacSHA256";
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
-    private static final String RETURN_URL = "/api/v1/member/nice/call-back?mid=";
+    private static final String RETURN_URL = "/api/v1/member/nice/call-back?id=%d&type=%s";
     private static final String REDIS_REQUEST_NO_KEY_TEMPLATE = "memberId:%d:requestNo";
 
     private final NiceClient niceClient;
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper;
     private final NiceProperties niceProperties;
-    public CreateNiceApiRequestDataDto initializeNiceApi(Long memberId) {
+
+    public CreateNiceApiRequestDataDto initializeNiceApi(Authority authority, Long id) {
+
         String key = null;
         String iv = null;
         String hmacKey = null;
@@ -83,11 +85,11 @@ public class InitializeNiceUseCase {
         }
 
         // 요청 데이터 생성
-        String reqData = createReqDataJson(cryptoToken.dataBody().siteCode(), memberId);
+        String reqData = createReqDataJson(cryptoToken.dataBody().siteCode(), authority.toString(), id);
 
         // 요청 데이터 암호화
         String encData = encryptReqData(key, iv, reqData);
-        
+
         // Hmac 무결성 체크값 생성
         String integrityValue = generateIntegrityValue(hmacKey.getBytes(), encData.getBytes());
 
@@ -98,7 +100,9 @@ public class InitializeNiceUseCase {
         );
     }
 
-    /**----------------------------------------------------------------------------------------------------**/
+    /**
+     * ----------------------------------------------------------------------------------------------------
+     **/
     // 암호화 토큰 조회
     private GetCryptoTokenResponse deserialization(String serializaedCryptoToken) {
         try {
@@ -157,17 +161,18 @@ public class InitializeNiceUseCase {
     }
 
     // 요청 데이터 생성
-    private String createReqDataJson(String siteCode, Long memberId) {
+    private String createReqDataJson(String siteCode, String type, Long id) {
         try {
             String requestNo = UUID.randomUUID().toString().substring(0, 30);
             NiceRequestData niceRequestData = new NiceRequestData(
                     requestNo,
-                    niceProperties.getCallbackUrl() + RETURN_URL + memberId,
+                    niceProperties.getCallbackUrl() + RETURN_URL + id + type,
                     siteCode,
                     "Y"
             );
 
-            String requestNoKey = String.format(REDIS_REQUEST_NO_KEY_TEMPLATE, memberId);
+            String typeId = id.toString() + type;
+            String requestNoKey = String.format(REDIS_REQUEST_NO_KEY_TEMPLATE, typeId);
             redisUtil.saveAsValue(requestNoKey, requestNo, REDIS_REQUEST_NO_EXPIRATION, MINUTES);
 
             return objectMapper.writeValueAsString(niceRequestData);

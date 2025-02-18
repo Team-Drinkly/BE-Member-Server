@@ -3,6 +3,7 @@ package com.drinkhere.drinklymember.application.signup.presentation;
 import com.drinkhere.drinklymember.application.signup.service.SignUpUseCase;
 import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.auth.dto.Token;
+import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.domain.member.dto.GetNiceApiResultResponse;
 import com.drinkhere.drinklymember.domain.member.dto.MemberSignUpRequest;
 import com.drinkhere.drinklymember.domain.member.dto.OwnerSignUpRequest;
@@ -21,21 +22,23 @@ public class SignUpController {
     private final SignUpUseCase<MemberSignUpRequest> memberSignUpService;
     private final SignUpUseCase<OwnerSignUpRequest> ownerSignUpService;
 
-    @GetMapping("/nice/{oauthId}")
+    @GetMapping("/nice/{type}/{oauthId}")
     public ApplicationResponse<CreateNiceApiRequestDataDto> initNiceApi(
+            @PathVariable("type") Authority authority,
             @PathVariable("oauthId") Long oauthId
     ) {
-        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(oauthId));
+        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(authority, oauthId));
     }
 
     @GetMapping("/nice/call-back")
     public ApplicationResponse<GetNiceApiResultResponse> handleNiceCallBack(
-            @RequestParam("mid") Long memberId,
+            @RequestParam("id") Long id,
+            @RequestParam("type") String type,
             @RequestParam("token_version_id") String tokenVersionId,
             @RequestParam("enc_data") String encData,
             @RequestParam("integrity_value") String integrityValue
     ) {
-        return ApplicationResponse.ok(niceCallBackUseCase.processCallback(memberId, encData), "NICE 본인인증에 성공했습니다.");
+        return ApplicationResponse.ok(niceCallBackUseCase.processCallback(id, type, encData), "NICE 본인인증에 성공했습니다.");
     }
 
     @PostMapping("/signup")

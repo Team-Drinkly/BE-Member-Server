@@ -21,9 +21,6 @@ public class Owner extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
-    private String nickname;
-
     @Column(name = "birth_date", nullable = false)
     private String birthDate;
 
@@ -45,20 +42,15 @@ public class Owner extends BaseTimeEntity {
     @Column(nullable = false)
     private String di;
 
-    @Column(name = "business_registration_number", nullable = false)
-    private String businessRegistrationNumber;
-
     @Builder
-    public Owner(Long id, String name, String nickname, String birthDate, Gender gender, NationalInfo nationalInfo, MobileCo mobileCo, String mobileNo, String di, String businessRegistrationNumber) {
+    public Owner(Long id, String name, String birthDate, Gender gender, NationalInfo nationalInfo, MobileCo mobileCo, String mobileNo, String di) {
         this.id = id;
         this.name = name;
-        this.nickname = nickname;
         this.birthDate = birthDate;
         this.gender = gender;
         this.nationalInfo = nationalInfo;
         this.mobileCo = mobileCo;
         this.mobileNo = mobileNo;
         this.di = di;
-        this.businessRegistrationNumber = businessRegistrationNumber;
     }
 }

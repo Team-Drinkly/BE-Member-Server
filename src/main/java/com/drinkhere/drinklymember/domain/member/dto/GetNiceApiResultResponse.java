@@ -6,7 +6,8 @@ import com.drinkhere.drinklymember.domain.member.enums.NationalInfo;
 import com.drinkhere.drinklymember.nice.dto.NiceDecryptedData;
 
 public record GetNiceApiResultResponse(
-        Long memberId,
+        Long id,
+        String type,
         String name,
         String birthDate,
         Gender gender,
@@ -15,9 +16,10 @@ public record GetNiceApiResultResponse(
         String mobileNo,
         String di
 ) {
-    public static GetNiceApiResultResponse from(Long memberId, NiceDecryptedData niceDecryptedData, String decodedName) {
+    public static GetNiceApiResultResponse from(Long id, String type, NiceDecryptedData niceDecryptedData, String decodedName) {
         return new GetNiceApiResultResponse(
-                memberId,
+                id,
+                type,
                 decodedName,
                 niceDecryptedData.birthDate(),
                 Gender.fromValue(Integer.parseInt(niceDecryptedData.gender())),
