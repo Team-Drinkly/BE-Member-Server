@@ -1,7 +1,6 @@
 package com.drinkhere.drinklymember.nice.service;
 
 import com.drinkhere.drinklymember.common.exception.nice.NiceException;
-import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.nice.dto.NiceCryptoData;
 import com.drinkhere.drinklymember.nice.dto.NiceRequestData;
 import com.drinkhere.drinklymember.nice.dto.response.CreateNiceApiRequestDataDto;
@@ -49,7 +48,7 @@ public class InitializeNiceUseCase {
     private final ObjectMapper objectMapper;
     private final NiceProperties niceProperties;
 
-    public CreateNiceApiRequestDataDto initializeNiceApi(Authority authority, Long id) {
+    public CreateNiceApiRequestDataDto initializeNiceApi(String type, Long id) {
 
         String key = null;
         String iv = null;
@@ -85,7 +84,7 @@ public class InitializeNiceUseCase {
         }
 
         // 요청 데이터 생성
-        String reqData = createReqDataJson(cryptoToken.dataBody().siteCode(), authority.toString(), id);
+        String reqData = createReqDataJson(cryptoToken.dataBody().siteCode(), type, id);
 
         // 요청 데이터 암호화
         String encData = encryptReqData(key, iv, reqData);
@@ -164,15 +163,19 @@ public class InitializeNiceUseCase {
     private String createReqDataJson(String siteCode, String type, Long id) {
         try {
             String requestNo = UUID.randomUUID().toString().substring(0, 30);
+
+            // 콜백 URL 올바르게 생성
+            String callbackUrl = String.format(niceProperties.getCallbackUrl() + RETURN_URL, id, type);
+
             NiceRequestData niceRequestData = new NiceRequestData(
                     requestNo,
-                    niceProperties.getCallbackUrl() + RETURN_URL + id + type,
+                    callbackUrl, // 수정된 콜백 URL 적용
                     siteCode,
                     "Y"
             );
 
-            String typeId = id.toString() + type;
-            String requestNoKey = String.format(REDIS_REQUEST_NO_KEY_TEMPLATE, typeId);
+            // Redis 키 생성 방식 수정
+            String requestNoKey = String.format("memberId:%d:type:%s:requestNo", id, type);
             redisUtil.saveAsValue(requestNoKey, requestNo, REDIS_REQUEST_NO_EXPIRATION, MINUTES);
 
             return objectMapper.writeValueAsString(niceRequestData);

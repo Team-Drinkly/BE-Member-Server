@@ -12,6 +12,10 @@ public class OwnerQueryService {
 
     private final OwnerRepository ownerRepository;
 
+    public boolean existsByDi(String di) {
+        return ownerRepository.existsByDi(di);
+    }
+
     public boolean existsById(Long ownerId) {
         return ownerRepository.existsById(ownerId);
     }

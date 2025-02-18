@@ -3,7 +3,6 @@ package com.drinkhere.drinklymember.application.signup.presentation;
 import com.drinkhere.drinklymember.application.signup.service.SignUpUseCase;
 import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.auth.dto.Token;
-import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.domain.member.dto.GetNiceApiResultResponse;
 import com.drinkhere.drinklymember.domain.member.dto.MemberSignUpRequest;
 import com.drinkhere.drinklymember.domain.member.dto.OwnerSignUpRequest;
@@ -24,10 +23,10 @@ public class SignUpController {
 
     @GetMapping("/nice/{type}/{oauthId}")
     public ApplicationResponse<CreateNiceApiRequestDataDto> initNiceApi(
-            @PathVariable("type") Authority authority,
+            @PathVariable("type") String type,
             @PathVariable("oauthId") Long oauthId
     ) {
-        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(authority, oauthId));
+        return ApplicationResponse.ok(initializeNiceUseCase.initializeNiceApi(type, oauthId));
     }
 
     @GetMapping("/nice/call-back")
