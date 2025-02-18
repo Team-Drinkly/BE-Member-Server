@@ -1,13 +1,14 @@
-package com.drinkhere.drinklymember.domain.member.dto;
+package com.drinkhere.drinklymember.domain.member.dto.signup;
 
-import com.drinkhere.drinklymember.domain.member.entity.Owner;
+import com.drinkhere.drinklymember.domain.member.entity.Member;
 import com.drinkhere.drinklymember.domain.member.enums.Gender;
 import com.drinkhere.drinklymember.domain.member.enums.MobileCo;
 import com.drinkhere.drinklymember.domain.member.enums.NationalInfo;
 
-public record OwnerSignUpRequest(
-        Long ownerId,
+public record MemberSignUpRequest(
+        Long memberId,
         String name,
+        String nickname,
         String birthDate,
         Gender gender,
         NationalInfo nationalInfo,
@@ -15,10 +16,11 @@ public record OwnerSignUpRequest(
         String mobileNo,
         String di
 ) {
-    public Owner toOwnerEntity() {
-        return Owner.builder()
-                .id(ownerId)
+    public Member toEntity() {
+        return Member.builder()
+                .id(memberId)
                 .name(name)
+                .nickname(nickname)
                 .birthDate(birthDate)
                 .gender(gender)
                 .nationalInfo(nationalInfo)

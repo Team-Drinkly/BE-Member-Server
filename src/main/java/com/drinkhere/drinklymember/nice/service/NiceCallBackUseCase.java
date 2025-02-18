@@ -2,7 +2,7 @@ package com.drinkhere.drinklymember.nice.service;
 
 import com.drinkhere.drinklymember.common.annotation.ApplicationService;
 import com.drinkhere.drinklymember.common.exception.nice.NiceException;
-import com.drinkhere.drinklymember.domain.member.dto.GetNiceApiResultResponse;
+import com.drinkhere.drinklymember.domain.member.dto.signup.GetNiceApiResultResponse;
 import com.drinkhere.drinklymember.domain.member.service.member.MemberQueryService;
 import com.drinkhere.drinklymember.domain.member.service.owner.OwnerQueryService;
 import com.drinkhere.drinklymember.nice.dto.NiceCryptoData;

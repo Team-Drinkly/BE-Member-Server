@@ -26,9 +26,5 @@ spring:
     hibernate:
       ddl-auto: update
 
-#  kafka:
-#    bootstrap-servers: localhost:29092  # 실제 Kafka 서버 주소로 변경
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+store-service:
+  url: http://localhost:8000/api/v1/store

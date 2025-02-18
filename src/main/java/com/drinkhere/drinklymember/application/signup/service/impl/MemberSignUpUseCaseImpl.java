@@ -5,7 +5,7 @@ import com.drinkhere.drinklymember.common.annotation.ApplicationService;
 import com.drinkhere.drinklymember.domain.auth.dto.Token;
 import com.drinkhere.drinklymember.domain.auth.jwt.JWTProvider;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthUpdateService;
-import com.drinkhere.drinklymember.domain.member.dto.MemberSignUpRequest;
+import com.drinkhere.drinklymember.domain.member.dto.signup.MemberSignUpRequest;
 import com.drinkhere.drinklymember.domain.member.service.member.MemberCommandService;
 import lombok.RequiredArgsConstructor;
 
