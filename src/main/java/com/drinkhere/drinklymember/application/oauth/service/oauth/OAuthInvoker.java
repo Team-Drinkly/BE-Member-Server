@@ -9,6 +9,7 @@ import com.drinkhere.drinklymember.domain.auth.entity.OAuthMember;
 import com.drinkhere.drinklymember.domain.auth.entity.OAuthOwner;
 import com.drinkhere.drinklymember.domain.auth.enums.Authority;
 import com.drinkhere.drinklymember.domain.auth.handler.request.OAuthSuccessEvent;
+import com.drinkhere.drinklymember.domain.auth.jwt.JWTProvider;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthQueryService;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthSaveService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class OAuthInvoker {
     private final List<AuthHandler> authHandlerList;
     private final OAuthQueryService oAuthQueryService;
     private final OAuthSaveService oAuthSaveService;
+    private final JWTProvider jwtProvider;
     private final ApplicationEventPublisher publisher;
 
     public OAuthResponse execute(OAuthRequest request) {
@@ -62,8 +64,14 @@ public class OAuthInvoker {
 
         publishOAuthSuccessEvent(oAuthUserInfo, request, oAuth.getId());
 
-        log.info("🔍 [END] OAuthInvoker - 멤버 처리 완료: id={}, sub={}", oAuth.getId(), oAuth.getSub());
-        return new OAuthResponse(oAuth.getId(), oAuth.isRegistered());
+        // isRegistered가 true인 경우 JWT 발급
+        if (oAuth.isRegistered()) {
+            var token = jwtProvider.generateMemberToken(oAuth.getId());
+            return new OAuthResponse(oAuth.getId(), true, token.accessToken(), token.refreshToken());
+        }
+
+        // isRegistered가 false인 경우 null 반환
+        return new OAuthResponse(oAuth.getId(), false, null, null);
     }
 
     private OAuthResponse handleOwnerOAuth(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {
@@ -86,8 +94,14 @@ public class OAuthInvoker {
 
         publishOAuthSuccessEvent(oAuthUserInfo, request, oAuth.getId());
 
-        log.info("🔍 [END] OAuthInvoker - 사장님 처리 완료: id={}, sub={}", oAuth.getId(), oAuth.getSub());
-        return new OAuthResponse(oAuth.getId(), oAuth.isRegistered());
+        // isRegistered가 true인 경우 JWT 발급
+        if (oAuth.isRegistered()) {
+            var token = jwtProvider.generateOwnerToken(oAuth.getId());
+            return new OAuthResponse(oAuth.getId(), true, token.accessToken(), token.refreshToken());
+        }
+
+        // isRegistered가 false인 경우 null 반환
+        return new OAuthResponse(oAuth.getId(), false, null, null);
     }
 
     private OAuthMember saveOAuthMember(OAuthUserInfo oAuthUserInfo, OAuthRequest request) {

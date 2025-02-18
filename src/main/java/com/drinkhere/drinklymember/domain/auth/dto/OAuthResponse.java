@@ -2,5 +2,7 @@ package com.drinkhere.drinklymember.domain.auth.dto;
 
 public record OAuthResponse(
         Long oauthId,
-        Boolean isRegistered) {
+        Boolean isRegistered,
+        String accessToken,
+        String refreshToken) {
 }
