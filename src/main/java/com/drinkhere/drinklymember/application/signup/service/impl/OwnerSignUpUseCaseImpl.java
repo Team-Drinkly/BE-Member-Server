@@ -24,7 +24,7 @@ public class OwnerSignUpUseCaseImpl implements SignUpUseCase<OwnerSignUpRequest>
         ownerCommandService.save(request.toOwnerEntity());
 
         // OAuth 등록 상태 변경
-        oAuthUpdateService.updateRegisterStatus(request.ownerId());
+        oAuthUpdateService.updateOwnerRegisterStatus(request.ownerId());
 
         // JWT 생성 및 반환
         return jwtProvider.generateOwnerToken(request.ownerId());

@@ -6,11 +6,15 @@ import com.drinkhere.drinklymember.domain.auth.dto.Token;
 import com.drinkhere.drinklymember.domain.member.dto.GetNiceApiResultResponse;
 import com.drinkhere.drinklymember.domain.member.dto.MemberSignUpRequest;
 import com.drinkhere.drinklymember.domain.member.dto.OwnerSignUpRequest;
+import com.drinkhere.drinklymember.domain.member.entity.Member;
+import com.drinkhere.drinklymember.domain.member.repository.MemberRepository;
 import com.drinkhere.drinklymember.nice.dto.response.CreateNiceApiRequestDataDto;
 import com.drinkhere.drinklymember.nice.service.InitializeNiceUseCase;
 import com.drinkhere.drinklymember.nice.service.NiceCallBackUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,5 +53,17 @@ public class SignUpController {
     public ApplicationResponse<Token> signUpOwner(@RequestBody OwnerSignUpRequest ownerSignUpRequest) {
         ownerSignUpService.signUp(ownerSignUpRequest);
         return ApplicationResponse.created(ownerSignUpService.signUp(ownerSignUpRequest));
+    }
+
+    // 아래 삭제
+    private final MemberRepository memberRepository;
+    @GetMapping("/{memberId}")
+    public ApplicationResponse<MemberResponse> test(@PathVariable Long memberId) {
+        Optional<Member> byId = memberRepository.findById(memberId);
+        return ApplicationResponse.ok(new MemberResponse(byId.get().getNickname()), "성공적으로 조회 ㅋ");
+    }
+    public record MemberResponse(
+            String nickname
+    ) {
     }
 }

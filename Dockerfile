@@ -1,3 +1,4 @@
 FROM openjdk:21
-COPY ./build/libs/memberService.jar memberService.jar
-ENTRYPOINT ["java", "-jar", "memberService.jar"]
+COPY ./build/libs/member-service.jar member-service.jar
+#ENTRYPOINT ["java", "-Dspring.profiles.active=dev", "-jar", "member-service.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "member-service.jar"]

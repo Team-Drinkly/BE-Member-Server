@@ -23,7 +23,7 @@ public class MemberSignUpUseCaseImpl implements SignUpUseCase<MemberSignUpReques
         memberCommandService.save(memberSignUpRequest.toEntity());
 
         // OAuth 등록 상태 변경
-        oAuthUpdateService.updateRegisterStatus(memberSignUpRequest.memberId());
+        oAuthUpdateService.updateMemberRegisterStatus(memberSignUpRequest.memberId());
 
         // JWT 생성 및 반환
         return jwtProvider.generateMemberToken(memberSignUpRequest.memberId());
