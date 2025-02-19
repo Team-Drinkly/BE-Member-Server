@@ -3,6 +3,7 @@ package com.drinkhere.drinklymember.domain.member.entity;
 import com.drinkhere.drinklymember.domain.auditing.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,4 +30,12 @@ public class MemberSubscribe extends BaseTimeEntity {
 
     @Column(nullable = false)
     private LocalDateTime expireDate;
+
+    @Builder
+    public MemberSubscribe(Long memberId, Long subscribeId, Boolean isSubscribed, LocalDateTime expireDate) {
+        this.memberId = memberId;
+        this.subscribeId = subscribeId;
+        this.isSubscribed = isSubscribed;
+        this.expireDate = expireDate;
+    }
 }
