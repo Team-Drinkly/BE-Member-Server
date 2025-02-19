@@ -1,5 +1,6 @@
 package com.drinkhere.drinklymember.application.oauth.presentation;
 
+import com.drinkhere.drinklymember.application.oauth.presentation.docs.OAuthControllerDocs;
 import com.drinkhere.drinklymember.application.oauth.service.LogoutUseCase;
 import com.drinkhere.drinklymember.application.oauth.service.OAuthUseCase;
 import com.drinkhere.drinklymember.application.oauth.service.ReissueUseCase;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/member")
-public class OAuthController {
+public class OAuthController implements OAuthControllerDocs {
 
     private final OAuthUseCase oAuthUseCase;
     private final LogoutUseCase logoutUseCase;
