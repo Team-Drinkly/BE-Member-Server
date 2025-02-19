@@ -51,7 +51,6 @@ public class SignUpController {
 
     @PostMapping("/signup/owner")
     public ApplicationResponse<Token> signUpOwner(@RequestBody OwnerSignUpRequest ownerSignUpRequest) {
-        ownerSignUpService.signUp(ownerSignUpRequest);
         return ApplicationResponse.created(ownerSignUpService.signUp(ownerSignUpRequest));
     }
 
