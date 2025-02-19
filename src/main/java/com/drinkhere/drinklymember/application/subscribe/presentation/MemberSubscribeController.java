@@ -24,4 +24,14 @@ public class MemberSubscribeController {
         memberSubscribeService.updateSubscriptionStatus(memberId, subscriptionHistoryId, durationDays);
         return ApplicationResponse.ok("구독 상태 업데이트 완료");
     }
+
+    /**
+     * 현재 사용자가 구독 중인지 확인하는 API (결제 전 검증)
+     * - 결제 서비스에서 Feign으로 호출하여 구독 여부 확인
+     */
+    @GetMapping("/check-subscription")
+    public ApplicationResponse<Boolean> isMemberSubscribed(@RequestHeader("member-id") Long memberId) {
+        boolean isSubscribed = memberSubscribeService.isMemberSubscribed(memberId);
+        return ApplicationResponse.ok(isSubscribed);
+    }
 }

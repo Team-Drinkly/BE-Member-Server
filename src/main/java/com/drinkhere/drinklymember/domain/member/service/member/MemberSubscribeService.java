@@ -32,4 +32,12 @@ public class MemberSubscribeService {
 
         memberSubscribeRepository.save(subscription);
     }
+
+    /**
+     * 현재 사용자가 구독 중인지 확인 (결제 전 검증)
+     */
+    @Transactional(readOnly = true)
+    public boolean isMemberSubscribed(Long memberId) {
+        return memberSubscribeRepository.existsByMemberIdAndIsSubscribed(memberId, true);
+    }
 }
