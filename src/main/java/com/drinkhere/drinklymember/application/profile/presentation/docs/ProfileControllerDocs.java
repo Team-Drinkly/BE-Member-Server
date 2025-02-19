@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 public interface ProfileControllerDocs {
     ApplicationResponse<GetMemberProfileResponse> getMemberProfile(
-            @RequestHeader(value = "member-id", required = false) Long memberId,
-            @RequestHeader(value = "subscribe-id", required = false) Long subscribeId,
-            @RequestHeader(value = "is-subscribe", required = false) String isSubscribe
+            @RequestHeader(value = "member-id", required = false) Long memberId
     );
 }

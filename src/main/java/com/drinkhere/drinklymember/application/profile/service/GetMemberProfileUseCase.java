@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @ApplicationService
 @RequiredArgsConstructor
@@ -21,23 +22,26 @@ public class GetMemberProfileUseCase {
     private final MemberQueryService memberQueryService;
     private final MemberSubscribeQueryService memberSubscribeQueryService;
     private final StoreClient storeClient;
-    public GetMemberProfileResponse getMemberProfile(Long memberId, Long subscribeId, String isSubscribe) {
+    public GetMemberProfileResponse getMemberProfile(Long memberId) {
         Member member = memberQueryService.findById(memberId);
-        if (isSubscribe.equals("false")) return GetMemberProfileResponse.toDto(member, false, null);
-        else if (isSubscribe.equals("true")) {
-            // 몇번 사용했는
-            CountFreeDrinkHistories countResponse = storeClient.getCountFreeDrinkHistoriesBySubscribeId(subscribeId);
-
-            MemberSubscribe memberSubscribe = memberSubscribeQueryService.getMemberSubscribe(memberId);
-
-            int leftDays = (int) Duration.between(LocalDateTime.now(), memberSubscribe.getExpireDate()).toDays();
-
-            String expiredDate = TimeUtil.refineToDate(memberSubscribe.getExpireDate());
-
-            SubscribeInfo subscribeInfo = new SubscribeInfo(leftDays, expiredDate, countResponse.getCount());
-
-            return GetMemberProfileResponse.toDto(member, true, subscribeInfo);
+        Optional<MemberSubscribe> memberSubscribeOpt = memberSubscribeQueryService.getMemberSubscribe(memberId);
+        if (memberSubscribeOpt.isEmpty()) {
+            return GetMemberProfileResponse.toDto(member, false, null);
         }
-        return null;
+
+        MemberSubscribe memberSubscribe = memberSubscribeOpt.get();
+
+        // 외부 API 호출 (구독 ID가 필요)
+        CountFreeDrinkHistories countResponse = storeClient.getCountFreeDrinkHistoriesBySubscribeId(
+                memberId, memberSubscribe.getSubscribeId()
+        );
+
+        int leftDays = (int) Duration.between(LocalDateTime.now(), memberSubscribe.getExpireDate()).toDays();
+
+        String expiredDate = TimeUtil.refineToDate(memberSubscribe.getExpireDate());
+
+        SubscribeInfo subscribeInfo = new SubscribeInfo(leftDays, expiredDate, countResponse.getCount(), countResponse.getPayload());
+
+        return GetMemberProfileResponse.toDto(member, true, subscribeInfo);
     }
 }

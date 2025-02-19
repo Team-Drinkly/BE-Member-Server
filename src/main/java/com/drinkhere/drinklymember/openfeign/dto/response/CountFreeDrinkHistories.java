@@ -1,18 +1,23 @@
 package com.drinkhere.drinklymember.openfeign.dto.response;
 
+import com.drinkhere.drinklymember.domain.member.dto.profile.response.DrinkHistory;
+
+import java.util.List;
+
 public record CountFreeDrinkHistories(
-        Payload payload
+        Result result,
+        List<DrinkHistory> payload
 ) {
-    public int getCount() {
-        return payload.count();
-    }
-
-    public Long getSubscribeId() {
-        return payload().subscriberId;
-    }
-
-    public record Payload(
-            Long subscriberId,
-            int count
+    public record Result(
+            int code,
+            String message
     ) {}
+
+    public List<DrinkHistory> getPayload() {
+        return payload;
+    }
+
+    public int getCount() {
+        return payload != null ? payload.size() : 0;
+    }
 }

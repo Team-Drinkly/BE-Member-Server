@@ -12,16 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/profile")
+@RequestMapping("/api/v1/member/profile")
 public class ProfileController implements ProfileControllerDocs {
 
     private final GetMemberProfileUseCase getMemberProfileUseCase;
-    @GetMapping("/o")
+
+    @GetMapping
     public ApplicationResponse<GetMemberProfileResponse> getMemberProfile(
-            @RequestHeader(value = "member-id", required = false) Long memberId,
-            @RequestHeader(value = "subscribe-id", required = false) Long subscribeId,
-            @RequestHeader(value = "is-subscribe", required = false) String isSubscribe
+            @RequestHeader(value = "member-id", required = false) Long memberId
     ) {
-        return ApplicationResponse.ok(getMemberProfileUseCase.getMemberProfile(memberId, subscribeId, isSubscribe), "멤버 정보를 성공적으로 조회했습니다.");
+        return ApplicationResponse.ok(getMemberProfileUseCase.getMemberProfile(memberId), "멤버 정보를 성공적으로 조회했습니다.");
     }
+
+
 }

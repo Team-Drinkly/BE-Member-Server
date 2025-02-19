@@ -5,6 +5,8 @@ import com.drinkhere.drinklymember.domain.member.repository.MemberSubscribeRepos
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class MemberSubscribeQueryService {
@@ -24,7 +26,7 @@ public class MemberSubscribeQueryService {
                 .orElse(null);
     }
 
-    public MemberSubscribe getMemberSubscribe(Long memberId) {
-        return memberSubscribeRepository.findByMemberIdOrThrow(memberId);
+    public Optional<MemberSubscribe> getMemberSubscribe(Long memberId) {
+        return memberSubscribeRepository.findByMemberId(memberId);
     }
 }
