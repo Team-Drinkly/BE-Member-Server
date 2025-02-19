@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "countFreeDrinkHistoryClient", url = "${store-service.url}")
 public interface StoreClient {
-    @GetMapping("/{subscribeId}")
-    CountFreeDrinkHistories getCountFreeDrinkHistoriesBySubscribeId(@PathVariable("subscribeId") Long subscribeId);
+    @GetMapping("/m/free-drink/client/{memberId}/{subscribeId}")
+    CountFreeDrinkHistories getCountFreeDrinkHistoriesBySubscribeId(
+            @PathVariable("memberId") Long memberId,
+            @PathVariable("subscribeId") Long subscribeId
+    );
 }
