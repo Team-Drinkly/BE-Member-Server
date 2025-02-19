@@ -1,4 +1,4 @@
-package com.drinkhere.drinklymember.domain.member.dto;
+package com.drinkhere.drinklymember.domain.member.dto.signup;
 
 import com.drinkhere.drinklymember.domain.member.enums.Gender;
 import com.drinkhere.drinklymember.domain.member.enums.MobileCo;

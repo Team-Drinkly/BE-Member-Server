@@ -23,4 +23,8 @@ public class MemberSubscribeQueryService {
                 .map(MemberSubscribe::getSubscribeId)
                 .orElse(null);
     }
+
+    public MemberSubscribe getMemberSubscribe(Long memberId) {
+        return memberSubscribeRepository.findByMemberIdOrThrow(memberId);
+    }
 }
