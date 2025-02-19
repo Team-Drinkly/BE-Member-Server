@@ -53,16 +53,4 @@ public class SignUpController {
     public ApplicationResponse<Token> signUpOwner(@RequestBody OwnerSignUpRequest ownerSignUpRequest) {
         return ApplicationResponse.created(ownerSignUpService.signUp(ownerSignUpRequest));
     }
-
-    // 아래 삭제
-    private final MemberRepository memberRepository;
-    @GetMapping("/{memberId}")
-    public ApplicationResponse<MemberResponse> test(@PathVariable Long memberId) {
-        Optional<Member> byId = memberRepository.findById(memberId);
-        return ApplicationResponse.ok(new MemberResponse(byId.get().getNickname()), "성공적으로 조회 ㅋ");
-    }
-    public record MemberResponse(
-            String nickname
-    ) {
-    }
 }

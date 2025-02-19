@@ -1,14 +1,17 @@
 package com.drinkhere.drinklymember.application.profile.presentation;
 
 import com.drinkhere.drinklymember.application.profile.presentation.docs.ProfileControllerDocs;
+import com.drinkhere.drinklymember.application.profile.service.GetMemberNicknameUseCase;
 import com.drinkhere.drinklymember.application.profile.service.GetMemberProfileUseCase;
 import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.member.dto.profile.response.GetMemberProfileResponse;
+import com.drinkhere.drinklymember.domain.member.dto.profile.response.MemberResponse;
+import com.drinkhere.drinklymember.domain.member.entity.Member;
+import com.drinkhere.drinklymember.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileController implements ProfileControllerDocs {
 
     private final GetMemberProfileUseCase getMemberProfileUseCase;
+    private final GetMemberNicknameUseCase getMemberNicknameUseCase;
 
     @GetMapping
     public ApplicationResponse<GetMemberProfileResponse> getMemberProfile(
@@ -25,4 +29,11 @@ public class ProfileController implements ProfileControllerDocs {
     }
 
 
+    /**
+     * Fromt Store Micro Service FeignClient Request
+     */
+    @GetMapping("/client/{memberId}")
+    public ApplicationResponse<MemberResponse> getMemberNickname(@PathVariable Long memberId) {
+        return ApplicationResponse.ok(getMemberNicknameUseCase.getMemberNickname(memberId), "요청하신 멤버의 닉네임입니다.(FeignClient Response)");
+    }
 }
