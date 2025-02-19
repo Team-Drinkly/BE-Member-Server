@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,4 +41,21 @@ public class MemberSubscribeService {
     public boolean isMemberSubscribed(Long memberId) {
         return memberSubscribeRepository.existsByMemberIdAndIsSubscribed(memberId, true);
     }
+
+    /**
+     * 만료된 구독 목록 조회 (배치 서버에서 호출)
+     */
+    @Transactional(readOnly = true)
+    public List<Long> getExpiredSubscriptions() {
+        return memberSubscribeRepository.findExpiredSubscriptions(LocalDateTime.now());
+    }
+
+    /**
+     * 구독 만료 처리 (배치 서버에서 호출)
+     */
+    @Transactional
+    public void expireSubscriptions(List<Long> expiredMemberIds) {
+        memberSubscribeRepository.updateExpiredSubscriptions(expiredMemberIds);
+    }
+
 }

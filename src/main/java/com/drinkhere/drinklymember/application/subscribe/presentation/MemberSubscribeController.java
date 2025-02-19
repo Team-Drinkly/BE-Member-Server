@@ -5,6 +5,8 @@ import com.drinkhere.drinklymember.domain.member.service.member.MemberSubscribeS
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/member/m")
 @RequiredArgsConstructor
@@ -33,5 +35,23 @@ public class MemberSubscribeController {
     public ApplicationResponse<Boolean> isMemberSubscribed(@RequestHeader("member-id") Long memberId) {
         boolean isSubscribed = memberSubscribeService.isMemberSubscribed(memberId);
         return ApplicationResponse.ok(isSubscribed);
+    }
+
+    /**
+     * 만료된 구독 목록 조회 API (배치 서버에서 호출)
+     */
+    @GetMapping("/expired-subscriptions")
+    public ApplicationResponse<List<Long>> getExpiredSubscriptions() {
+        List<Long> expiredSubscriptions = memberSubscribeService.getExpiredSubscriptions();
+        return ApplicationResponse.ok(expiredSubscriptions);
+    }
+
+    /**
+     * 구독 만료 처리 API (배치 서버에서 호출)
+     */
+    @PostMapping("/expire-subscriptions")
+    public ApplicationResponse<String> expireSubscriptions(@RequestBody List<Long> expiredMemberIds) {
+        memberSubscribeService.expireSubscriptions(expiredMemberIds);
+        return ApplicationResponse.ok("구독 만료 상태 업데이트 완료");
     }
 }
