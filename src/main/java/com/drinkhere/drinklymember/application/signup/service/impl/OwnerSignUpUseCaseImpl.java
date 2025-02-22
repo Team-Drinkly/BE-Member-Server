@@ -5,7 +5,7 @@ import com.drinkhere.drinklymember.common.annotation.ApplicationService;
 import com.drinkhere.drinklymember.domain.auth.dto.Token;
 import com.drinkhere.drinklymember.domain.auth.jwt.JWTProvider;
 import com.drinkhere.drinklymember.domain.auth.service.OAuthUpdateService;
-import com.drinkhere.drinklymember.domain.member.dto.OwnerSignUpRequest;
+import com.drinkhere.drinklymember.domain.member.dto.signup.OwnerSignUpRequest;
 import com.drinkhere.drinklymember.domain.member.service.owner.OwnerCommandService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +24,7 @@ public class OwnerSignUpUseCaseImpl implements SignUpUseCase<OwnerSignUpRequest>
         ownerCommandService.save(request.toOwnerEntity());
 
         // OAuth 등록 상태 변경
-        oAuthUpdateService.updateRegisterStatus(request.ownerId());
+        oAuthUpdateService.updateOwnerRegisterStatus(request.ownerId());
 
         // JWT 생성 및 반환
         return jwtProvider.generateOwnerToken(request.ownerId());

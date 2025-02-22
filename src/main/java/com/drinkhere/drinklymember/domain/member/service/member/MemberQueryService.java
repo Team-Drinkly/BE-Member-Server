@@ -1,5 +1,6 @@
 package com.drinkhere.drinklymember.domain.member.service.member;
 
+import com.drinkhere.drinklymember.domain.member.entity.Member;
 import com.drinkhere.drinklymember.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,4 +20,6 @@ public class MemberQueryService {
     public boolean existsById(Long memberId) {
         return memberRepository.existsById(memberId);
     }
+
+    public Member findById(Long memberId) { return memberRepository.findByIdOrThrow(memberId); }
 }
