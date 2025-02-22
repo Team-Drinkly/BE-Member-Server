@@ -21,10 +21,8 @@ public class ProfileController implements ProfileControllerDocs {
     private final GetMemberProfileUseCase getMemberProfileUseCase;
     private final GetMemberNicknameUseCase getMemberNicknameUseCase;
 
-    @GetMapping
-    public ApplicationResponse<GetMemberProfileResponse> getMemberProfile(
-            @RequestHeader(value = "member-id", required = false) Long memberId
-    ) {
+    @GetMapping("/{memberId}")
+    public ApplicationResponse<GetMemberProfileResponse> getMemberProfile(@PathVariable Long memberId) {
         return ApplicationResponse.ok(getMemberProfileUseCase.getMemberProfile(memberId), "멤버 정보를 성공적으로 조회했습니다.");
     }
 

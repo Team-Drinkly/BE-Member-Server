@@ -1,5 +1,6 @@
 package com.drinkhere.drinklymember.application.subscribe.presentation;
 
+import com.drinkhere.drinklymember.application.subscribe.presentation.docs.MemberSubscribeControllerDocs;
 import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.member.service.member.MemberSubscribeService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/member/m")
 @RequiredArgsConstructor
-public class MemberSubscribeController {
+public class MemberSubscribeController implements MemberSubscribeControllerDocs {
 
     private final MemberSubscribeService memberSubscribeService;
 

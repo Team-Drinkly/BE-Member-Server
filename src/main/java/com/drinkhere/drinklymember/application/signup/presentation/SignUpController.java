@@ -1,5 +1,6 @@
 package com.drinkhere.drinklymember.application.signup.presentation;
 
+import com.drinkhere.drinklymember.application.signup.presentation.docs.SignUpControllerDocs;
 import com.drinkhere.drinklymember.application.signup.service.SignUpUseCase;
 import com.drinkhere.drinklymember.common.response.ApplicationResponse;
 import com.drinkhere.drinklymember.domain.auth.dto.Token;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/member")
-public class SignUpController {
+public class SignUpController implements SignUpControllerDocs {
     private final InitializeNiceUseCase initializeNiceUseCase;
     private final NiceCallBackUseCase niceCallBackUseCase;
     private final SignUpUseCase<MemberSignUpRequest> memberSignUpService;
@@ -50,6 +51,7 @@ public class SignUpController {
     }
 
     @PostMapping("/signup/owner")
+
     public ApplicationResponse<Token> signUpOwner(@RequestBody OwnerSignUpRequest ownerSignUpRequest) {
         return ApplicationResponse.created(ownerSignUpService.signUp(ownerSignUpRequest));
     }
