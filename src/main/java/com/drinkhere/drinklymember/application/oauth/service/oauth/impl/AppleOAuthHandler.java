@@ -79,52 +79,69 @@ public class AppleOAuthHandler implements AuthHandler {
 
         log.info("✅ Apple 공개 키 매칭 성공 - kid: {}", kid);
 
-        // `aud` 값 결정 (Customer vs Manager)
-        String audience = determineAudience(unverifiedToken);
+        // 공개 키 생성
+        PublicKey publicKey;
+        try {
+            publicKey = getRSAPublicKey(pubKey.getN(), pubKey.getE());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            log.error("❌ Apple 공개 키 생성 실패", e);
+            throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
+        }
 
-        return getOIDCTokenJws(unverifiedToken, pubKey.getN(), pubKey.getE(), APPLE_ISS, audience);
+        // aud 값 검증 및 추출
+        String audience = determineAudience(unverifiedToken, publicKey);
+
+        // 최종 토큰 검증
+        return verifyTokenWithAudience(unverifiedToken, publicKey, audience);
     }
 
     /**
      * Apple JWT의 aud 값을 확인하여 고객용(CUSTOMER)인지 관리자용(MANAGER)인지 결정
      */
-    private String determineAudience(String token) {
+    private String determineAudience(String token, PublicKey publicKey) {
         try {
             Jws<Claims> parsedToken = Jwts.parser()
+                    .verifyWith(publicKey)
                     .build()
                     .parseSignedClaims(token);
 
             String aud = parsedToken.getPayload().getAudience().toString();
+            aud = aud.replaceAll("[\\[\\]]", "").trim();
+
             log.info("🔍 Apple JWT aud 값: {}", aud);
 
-            if (appleProperties.getCustomer().equals(aud)) {
-                return appleProperties.getCustomer();
-            } else if (appleProperties.getManager().equals(aud)) {
-                return appleProperties.getManager();
-            } else {
-                log.error("❌ Apple JWT aud 값이 예상과 다름: {}", aud);
+            // 설정값 null 체크
+            String customerAud = appleProperties.getCustomer();
+            String managerAud = appleProperties.getManager();
+            System.out.println(customerAud);
+            System.out.println(aud);
+
+            if (customerAud == null || managerAud == null) {
+                log.error("❌ AppleProperties 설정 오류 (customer: {}, manager: {})", customerAud, managerAud);
                 throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
             }
+
+            if (customerAud.equals(aud)) return customerAud;
+            if (managerAud.equals(aud)) return managerAud;
+
+            log.error("❌ 유효하지 않은 aud 값: {}", aud);
+            throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
         } catch (Exception e) {
-            log.error("❌ Apple JWT aud 값 확인 중 예외 발생", e);
+            log.error("❌ aud 값 확인 실패", e);
             throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
         }
     }
 
-    public Jws<Claims> getOIDCTokenJws(String token, String modulus, String exponent, String iss, String aud) {
+    private Jws<Claims> verifyTokenWithAudience(String token, PublicKey publicKey, String expectedAud) {
         try {
-            log.info("🔍 Apple JWT 검증을 위한 공개 키 생성 시작");
-            PublicKey publicKey = getRSAPublicKey(modulus, exponent); // ✅ 수정된 메서드 적용
-            log.info("✅ Apple 공개 키 생성 완료: {}", publicKey);
-
             return Jwts.parser()
-                    .requireIssuer(iss)
-                    .requireAudience(aud)
+                    .requireIssuer(APPLE_ISS)
+                    .requireAudience(expectedAud)
                     .verifyWith(publicKey)
                     .build()
                     .parseSignedClaims(token);
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-            log.error("❌ Apple JWT 검증 실패 - 예외 발생: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("❌ 최종 토큰 검증 실패", e);
             throw new InvalidTokenException(AuthErrorCode.INVALID_TOKEN);
         }
     }
